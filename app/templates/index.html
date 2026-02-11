@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI E-Commerce Scanner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-indigo-600 mb-2">AI E-Commerce Scanner</h1>
+            <p class="text-gray-600">Extract structured data from any product page using Gemini Pro</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex gap-4">
+                <input 
+                    type="url" 
+                    v-model="url" 
+                    placeholder="Enter product URL (e.g., https://amazon.com/...)" 
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    :disabled="loading"
+                    @keyup.enter="scanProduct"
+                >
+                <button 
+                    @click="scanProduct" 
+                    class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="!url || loading"
+                >
+                    <span v-if="loading" class="loader"></span>
+                    <span v-else>Scan Product</span>
+                </button>
+            </div>
+            <p v-if="error" class="text-red-500 mt-3 text-sm">{{ error }}</p>
+        </div>
+
+        <!-- content -->
+        <div v-if="result" class="space-y-6">
+            <!-- Product Card -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                <div class="md:flex">
+                    <div class="md:w-1/3 bg-gray-100 flex items-center justify-center p-4">
+                        <img 
+                            v-if="result.media && result.media.main_image && result.media.main_image !== 'not-identified'" 
+                            :src="result.media.main_image" 
+                            alt="Product Image" 
+                            class="max-h-64 object-contain"
+                        >
+                        <div v-else class="text-gray-400">No Image Found</div>
+                    </div>
+                    <div class="p-6 md:w-2/3">
+                        <div class="flex justify-between items-start">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ result.name }}</h2>
+                            <div class="text-right">
+                                <span class="block text-3xl font-bold text-green-600">{{ result.price.current }}</span>
+                                <span v-if="result.price.original !== 'not-identified'" class="text-gray-400 line-through text-lg">{{ result.price.original }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 space-y-2">
+                            <p class="text-gray-600 text-sm line-clamp-3">{{ result.details.description }}</p>
+                            
+                            <div class="flex gap-4 mt-4">
+                                <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                                    {{ result.details.availability }}
+                                </div>
+                                <div v-if="result.social_proof.rating !== 'not-identified'" class="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                                    <span>★</span> {{ result.social_proof.rating }} ({{ result.social_proof.reviews }})
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Details Grid -->
+                <div class="border-t border-gray-100 p-6 bg-gray-50 grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-3">Key Features</h3>
+                        <ul class="space-y-2">
+                            <li v-for="(feature, index) in parseList(result.details.features)" :key="index" class="flex items-start gap-2 text-sm text-gray-600">
+                                <span class="text-green-500 mt-1">•</span>
+                                {{ feature }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-3">Specifications</h3>
+                        <ul class="space-y-2">
+                            <li v-for="(spec, index) in parseList(result.details.specifications)" :key="index" class="flex items-start gap-2 text-sm text-gray-600">
+                                <span class="text-indigo-500 mt-1">•</span>
+                                {{ spec }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raw JSON Dump -->
+            <div class="bg-slate-900 rounded-lg shadow-md p-6 overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-gray-100 font-mono text-sm">Raw JSON Response</h3>
+                    <button @click="copyToClipboard" class="text-xs text-indigo-300 hover:text-white transition-colors">Copy JSON</button>
+                </div>
+                <div class="relative group">
+                    <pre class="text-green-400 font-mono text-xs overflow-x-auto p-4 bg-slate-800 rounded">{{ JSON.stringify(result, null, 2) }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const url = ref('');
+                const loading = ref(false);
+                const error = ref(null);
+                const result = ref(null);
+
+                const scanProduct = async () => {
+                    if (!url.value) return;
+                    
+                    loading.value = true;
+                    error.value = null;
+                    result.value = null;
+
+                    try {
+                        const response = await fetch('/api/v1/scan', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ url: url.value }),
+                        });
+
+                        const data = await response.json();
+
+                        if (data.status === 'success') {
+                            result.value = data.data;
+                        } else {
+                            error.value = data.message || 'Scan failed';
+                        }
+                    } catch (err) {
+                        error.value = 'Failed to connect to the server. Make sure the backend is running.';
+                        console.error(err);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const parseList = (item) => {
+                    if (Array.isArray(item)) return item;
+                    if (typeof item === 'string' && item !== 'not-identified') return [item];
+                    return [];
+                };
+
+                const copyToClipboard = () => {
+                    if (!result.value) return;
+                    navigator.clipboard.writeText(JSON.stringify(result.value, null, 2));
+                    alert('Copied to clipboard!');
+                };
+
+                return {
+                    url,
+                    loading,
+                    error,
+                    result,
+                    scanProduct,
+                    parseList,
+                    copyToClipboard
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

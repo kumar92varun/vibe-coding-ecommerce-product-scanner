@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+playwright
+langchain-google-genai
+langchain
+python-dotenv
+pydantic-settings
