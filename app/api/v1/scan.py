@@ -33,10 +33,10 @@ async def scan_product(request: ProductScanRequest):
     
     # 1. Scrape the page content
     print(f"Scraping {url}...")
-    content = await scrape_product_page(url)
+    content, error_msg = await scrape_product_page(url)
     
-    if not content:
-        raise HTTPException(status_code=400, detail="Failed to scrape the key content from the URL. The page might be blocking bots or not accessible.")
+    if error_msg:
+        raise HTTPException(status_code=400, detail=error_msg)
         
     # 2. Extract data using AI
     print("Extracting data with AI...")

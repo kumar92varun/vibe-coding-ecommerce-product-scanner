@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, RedirectResponse, HTMLResponse
 from app.core.config import settings
 from app.api.v1 import scan
 
@@ -11,7 +12,6 @@ app = FastAPI(
 )
 
 # CORS Configuration
-# Allow all origins for simplicity in this demo, but restrict in production
 origins = ["*"]
 
 app.add_middleware(
@@ -22,19 +22,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(scan.router, prefix="/api/v1", tags=["Scanning"])
+# Cookie Verification Dependency
+async def verify_cookie(request: Request):
+    auth_cookie = request.cookies.get("auth_session")
+    if auth_cookie != "valid_session": # Simple check, can be enhanced with tokens
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized"
+        )
+    return True
 
-# Mount static files (if any backend static assets are needed)
+# Include API routers - Protected
+app.include_router(
+    scan.router, 
+    prefix="/api/v1", 
+    tags=["Scanning"],
+    dependencies=[Depends(verify_cookie)]
+)
+
+# Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Serve the frontend (simple workaround for single-file Vue app)
-# In a real setup, we might use Nginx or a separate frontend server
-from fastapi.responses import FileResponse
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    auth_cookie = request.cookies.get("auth_session")
+    if auth_cookie == "valid_session":
+        return FileResponse("app/templates/index.html")
+    return FileResponse("app/templates/login.html")
 
-@app.get("/")
-async def read_root():
-    return FileResponse("app/templates/index.html")
+@app.post("/login")
+async def login(password: str = Form(...)):
+    if password == settings.ACCESS_PASSWORD:
+        response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+        response.set_cookie(key="auth_session", value="valid_session", httponly=True)
+        return response
+    
+    # Return login page with error (simplified for now, just reload login)
+    return FileResponse("app/templates/login.html")
 
 if __name__ == "__main__":
     import uvicorn

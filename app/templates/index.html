@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI E-Commerce Scanner</title>
+    <title>E-commerce Product Importer</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue.js 3 -->
@@ -26,8 +26,8 @@
 <body class="bg-gray-50 min-h-screen text-gray-800">
     <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
         <header class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-indigo-600 mb-2">AI E-Commerce Scanner</h1>
-            <p class="text-gray-600">Extract structured data from any product page using Gemini Pro</p>
+            <h1 class="text-4xl font-bold text-indigo-600 mb-2">E-commerce Product Importer</h1>
+            <p class="text-gray-600">AI Agent built by Crownstack using LangChain and Google Gemini (LLM) to help importing a product from any e-commerce platform into a standard structured JSON output</p>
         </header>
 
         <!-- Input Section -->
@@ -55,64 +55,7 @@
 
         <!-- content -->
         <div v-if="result" class="space-y-6">
-            <!-- Product Card -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-                <div class="md:flex">
-                    <div class="md:w-1/3 bg-gray-100 flex items-center justify-center p-4">
-                        <img 
-                            v-if="result.media && result.media.main_image && result.media.main_image !== 'not-identified'" 
-                            :src="result.media.main_image" 
-                            alt="Product Image" 
-                            class="max-h-64 object-contain"
-                        >
-                        <div v-else class="text-gray-400">No Image Found</div>
-                    </div>
-                    <div class="p-6 md:w-2/3">
-                        <div class="flex justify-between items-start">
-                            <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ result.name }}</h2>
-                            <div class="text-right">
-                                <span class="block text-3xl font-bold text-green-600">{{ result.price.current }}</span>
-                                <span v-if="result.price.original !== 'not-identified'" class="text-gray-400 line-through text-lg">{{ result.price.original }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4 space-y-2">
-                            <p class="text-gray-600 text-sm line-clamp-3">{{ result.details.description }}</p>
-                            
-                            <div class="flex gap-4 mt-4">
-                                <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                                    {{ result.details.availability }}
-                                </div>
-                                <div v-if="result.social_proof.rating !== 'not-identified'" class="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                                    <span>★</span> {{ result.social_proof.rating }} ({{ result.social_proof.reviews }})
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Details Grid -->
-                <div class="border-t border-gray-100 p-6 bg-gray-50 grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 class="font-semibold text-gray-900 mb-3">Key Features</h3>
-                        <ul class="space-y-2">
-                            <li v-for="(feature, index) in parseList(result.details.features)" :key="index" class="flex items-start gap-2 text-sm text-gray-600">
-                                <span class="text-green-500 mt-1">•</span>
-                                {{ feature }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-gray-900 mb-3">Specifications</h3>
-                        <ul class="space-y-2">
-                            <li v-for="(spec, index) in parseList(result.details.specifications)" :key="index" class="flex items-start gap-2 text-sm text-gray-600">
-                                <span class="text-indigo-500 mt-1">•</span>
-                                {{ spec }}
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Raw JSON Dump -->
             <div class="bg-slate-900 rounded-lg shadow-md p-6 overflow-hidden">

@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     GOOGLE_API_KEY: str
+    ACCESS_PASSWORD: str
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
