@@ -1,0 +1,28 @@
+[Unit]
+Description=E-commerce Product Importer Service
+After=network.target
+
+[Service]
+# User/Group to run the service
+# REPLACE 'root' with your actual user if you created one (recommended)
+User=root
+Group=root
+
+# Directory where the app is located
+# REPLACE with the actual path, e.g., /opt/ecommerce-scanner
+WorkingDirectory=/var/www/ecommerce-scanner
+
+# Path to the gunicorn/uvicorn executable in your venv
+# REPLACE with actual venv path
+ExecStart=/var/www/ecommerce-scanner/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# Environment variables
+# Load from .env file
+EnvironmentFile=/var/www/ecommerce-scanner/.env
+
+# Restart policy
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
