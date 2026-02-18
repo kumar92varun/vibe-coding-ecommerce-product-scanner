@@ -100,14 +100,16 @@ To access apps via domains (e.g., `scanner.com` -> 8001), install Nginx on the s
 
 ## Troubleshooting
 
-### Login Redirection Issues & API 404s
+### Login Redirection & API 404s
 If using `ROOT_PATH` (hosting under a sub-directory):
-1.  **Redirection**: Incorrect `ROOT_PATH` or old image can cause login to redirect to the wrong URL.
-2.  **API Errors**: If `scan` fails with "Not Found", it usually means the frontend is trying to hit `/api/v1/scan` (absolute) instead of `{ROOT_PATH}/api/v1/scan`.
 
-**Solution**:
-- Ensure `ROOT_PATH` is set in `.env`.
-- **Rebuild the image**: `sudo docker-compose up -d --build` (Crucial!).
+1.  **Redirection**: Incorrect `ROOT_PATH` or old image can cause login to redirect to the wrong URL.
+2.  **API Errors**: If `scan` fails with "Not Found", verify `ROOT_PATH` is set and the frontend uses it.
+3.  **Double Slashes (`//login`)**: If logs show requests with double slashes (e.g., `POST //login`), check your **Nginx configuration**.
+    - **Incorrect**: `proxy_pass http://localhost:8000/;` (Note the trailing slash)
+    - **Correct**: `proxy_pass http://localhost:8000;` (No trailing slash when passing path)
+
+**Always Rebuild**: `sudo docker-compose up -d --build` after changing `.env` or code.
 
 ## Common Commands
 - **Logs**: `sudo docker-compose logs -f`

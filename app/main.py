@@ -71,18 +71,12 @@ async def read_root(request: Request):
 
 @app.post("/login")
 async def login(password: str = Form(...)):
-    print(f"DEBUG: Login Attempt. Received password: '{password}'")
-    print(f"DEBUG: Expected config password: '{settings.ACCESS_PASSWORD}'")
-    print(f"DEBUG: Root Path is: '{settings.ROOT_PATH}'")
-    
     if password == settings.ACCESS_PASSWORD:
-        print("DEBUG: Password matched! Redirecting...")
         # Redirect to root (respecting root_path of the app)
         response = RedirectResponse(url=f"{settings.ROOT_PATH}/", status_code=status.HTTP_303_SEE_OTHER)
         response.set_cookie(key="auth_session", value="valid_session", httponly=True)
         return response
     
-    print("DEBUG: Password mismatch! Returning login page.")
     # Return login page with error (simplified for now, just reload login)
     with open("app/templates/login.html", "r") as f:
         content = f.read()
