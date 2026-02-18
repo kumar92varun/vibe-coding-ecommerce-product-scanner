@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     ACCESS_PASSWORD: str
     HOST: str = "0.0.0.0"
     PORT: int = 8000
+    ROOT_PATH: str = ""
     
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

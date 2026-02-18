@@ -8,7 +8,8 @@ from app.api.v1 import scan
 app = FastAPI(
     title="E-Commerce Scanner AI",
     description="A scalable AI agent for scraping and analyzing e-commerce product pages.",
-    version="1.0.0"
+    version="1.0.0",
+    root_path=settings.ROOT_PATH
 )
 
 # CORS Configuration
@@ -53,7 +54,8 @@ async def read_root(request: Request):
 @app.post("/login")
 async def login(password: str = Form(...)):
     if password == settings.ACCESS_PASSWORD:
-        response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+        # Redirect to root (respecting root_path of the app)
+        response = RedirectResponse(url=f"{settings.ROOT_PATH}/", status_code=status.HTTP_303_SEE_OTHER)
         response.set_cookie(key="auth_session", value="valid_session", httponly=True)
         return response
     
