@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,35 +18,36 @@
             height: 20px;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen text-gray-800">
     <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
         <header class="text-center mb-12">
             <h1 class="text-4xl font-bold text-indigo-600 mb-2">E-commerce Product Importer</h1>
-            <p class="text-gray-600">AI Agent built by Crownstack using LangChain and Google Gemini (LLM) to help importing a product from any e-commerce platform into a standard structured JSON output</p>
+            <p class="text-gray-600">AI Agent built by Crownstack using LangChain and Google Gemini (LLM) to help
+                importing a product from any e-commerce platform into a standard structured JSON output</p>
         </header>
 
         <!-- Input Section -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <div class="flex gap-4">
-                <input 
-                    type="url" 
-                    v-model="url" 
-                    placeholder="Enter product URL (e.g., https://amazon.com/...)" 
+                <input type="url" v-model="url" placeholder="Enter product URL (e.g., https://amazon.com/...)"
                     class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    :disabled="loading"
-                    @keyup.enter="scanProduct"
-                >
-                <button 
-                    @click="scanProduct" 
+                    :disabled="loading" @keyup.enter="scanProduct">
+                <button @click="scanProduct"
                     class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    :disabled="!url || loading"
-                >
+                    :disabled="!url || loading">
                     <span v-if="loading" class="loader"></span>
                     <span v-else>Scan Product</span>
                 </button>
@@ -61,10 +63,12 @@
             <div class="bg-slate-900 rounded-lg shadow-md p-6 overflow-hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-gray-100 font-mono text-sm">Raw JSON Response</h3>
-                    <button @click="copyToClipboard" class="text-xs text-indigo-300 hover:text-white transition-colors">Copy JSON</button>
+                    <button @click="copyToClipboard"
+                        class="text-xs text-indigo-300 hover:text-white transition-colors">Copy JSON</button>
                 </div>
                 <div class="relative group">
-                    <pre class="text-green-400 font-mono text-xs overflow-x-auto p-4 bg-slate-800 rounded">{{ JSON.stringify(result, null, 2) }}</pre>
+                    <pre
+                        class="text-green-400 font-mono text-xs overflow-x-auto p-4 bg-slate-800 rounded">{{ JSON.stringify(result, null, 2) }}</pre>
                 </div>
             </div>
         </div>
@@ -80,15 +84,17 @@
                 const error = ref(null);
                 const result = ref(null);
 
+                const rootPath = "{{ root_path }}";
+
                 const scanProduct = async () => {
                     if (!url.value) return;
-                    
+
                     loading.value = true;
                     error.value = null;
                     result.value = null;
 
                     try {
-                        const response = await fetch('/api/v1/scan', {
+                        const response = await fetch(`${rootPath}/api/v1/scan`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -136,4 +142,5 @@
         }).mount('#app');
     </script>
 </body>
+
 </html>

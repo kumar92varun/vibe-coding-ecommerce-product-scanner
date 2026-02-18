@@ -48,7 +48,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def read_root(request: Request):
     auth_cookie = request.cookies.get("auth_session")
     if auth_cookie == "valid_session":
-        return FileResponse("app/templates/index.html")
+        with open("app/templates/index.html", "r") as f:
+            content = f.read()
+        return HTMLResponse(content=content.replace("{{ root_path }}", settings.ROOT_PATH))
     # Using Jinja2Template response would be better, but since we are using FileResponse for now,
     # we need to switch to TemplateResponse to pass variables, OR we can't pass variables to FileResponse.
     # Wait, the user has been using FileResponse. To pass 'root_path', we MUST use a template engine or client-side JS.

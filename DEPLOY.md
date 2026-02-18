@@ -100,10 +100,14 @@ To access apps via domains (e.g., `scanner.com` -> 8001), install Nginx on the s
 
 ## Troubleshooting
 
-### Login Redirection Issues
-If you are hosted under a sub-path (e.g., `/ai-agents/app`) and login redirects you to a wrong URL (like `/ai-agents/login`), ensure:
-1.  `ROOT_PATH` is set correctly in `.env`.
-2.  You have **rebuilt the image** (`docker-compose up -d --build`) after pulling the latest code changes. The fix involves updated Python code and HTML templates which must be baked into the image.
+### Login Redirection Issues & API 404s
+If using `ROOT_PATH` (hosting under a sub-directory):
+1.  **Redirection**: Incorrect `ROOT_PATH` or old image can cause login to redirect to the wrong URL.
+2.  **API Errors**: If `scan` fails with "Not Found", it usually means the frontend is trying to hit `/api/v1/scan` (absolute) instead of `{ROOT_PATH}/api/v1/scan`.
+
+**Solution**:
+- Ensure `ROOT_PATH` is set in `.env`.
+- **Rebuild the image**: `sudo docker-compose up -d --build` (Crucial!).
 
 ## Common Commands
 - **Logs**: `sudo docker-compose logs -f`
