@@ -50,6 +50,8 @@ ACCESS_PASSWORD=your_password
 HOST=0.0.0.0
 # Port config (Change this if running multiple apps)
 HOST_PORT=8000
+# Base path (optional, for sub-directory hosting)
+ROOT_PATH=/ai-agents/ecommerce-product-importer
 ```
 
 ### Step 4: Build and Run
@@ -95,6 +97,13 @@ To access apps via domains (e.g., `scanner.com` -> 8001), install Nginx on the s
     ```
 3.  **Enable**: `sudo ln -s /etc/nginx/sites-available/scanner.com /etc/nginx/sites-enabled/`
 4.  **Restart**: `sudo systemctl restart nginx`
+
+## Troubleshooting
+
+### Login Redirection Issues
+If you are hosted under a sub-path (e.g., `/ai-agents/app`) and login redirects you to a wrong URL (like `/ai-agents/login`), ensure:
+1.  `ROOT_PATH` is set correctly in `.env`.
+2.  You have **rebuilt the image** (`docker-compose up -d --build`) after pulling the latest code changes. The fix involves updated Python code and HTML templates which must be baked into the image.
 
 ## Common Commands
 - **Logs**: `sudo docker-compose logs -f`
