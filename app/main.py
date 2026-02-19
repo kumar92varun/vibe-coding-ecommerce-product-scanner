@@ -69,23 +69,8 @@ async def read_root(request: Request):
     auth_cookie = request.cookies.get("auth_session")
     if auth_cookie == "valid_session":
         return render_template("app/templates/index.html")
-    # Using Jinja2Template response would be better, but since we are using FileResponse for now,
-    # we need to switch to TemplateResponse to pass variables, OR we can't pass variables to FileResponse.
-    # Wait, the user has been using FileResponse. To pass 'root_path', we MUST use a template engine or client-side JS.
-    # Let's switch to a simple string replacement or use Jinja2. The project has 'fastapi[all]' which includes jinja2.
-    # checking requirements.txt... it has fastapi.
-    # Let's try to just read the file and replace a placeholder, to avoid adding Jinja2 dependency if not present.
-    # Actually, let's check if Jinja2 is installed.
-    # requirements.txt doesn't explicitly list jinja2 but fastapi usually implies it for templates.
-    # However, to be safe and minimal:
-    with open("app/templates/login.html", "r") as f:
-        content = f.read()
-    # Replace a placeholder or inject the variable.
-    # Let's assume we can use basic formatted string injection for this simple case to avoid dependencies.
-    # But wait, the file is on disk.
-    
-    # Let's switch to returning HTMLResponse with substituted content.
-    return HTMLResponse(content=content.replace("{{ root_path }}", settings.ROOT_PATH))
+    # Return login page with footer injection
+    return render_template("app/templates/login.html")
 
 @app.post("/login")
 async def login(password: str = Form(...)):
