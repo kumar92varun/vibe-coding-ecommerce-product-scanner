@@ -31,8 +31,8 @@
     </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen text-gray-800">
-    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl">
+<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col">
+    <div id="app" class="container mx-auto px-4 py-8 max-w-4xl flex-grow">
         <header class="text-center mb-12">
             <h1 class="text-4xl font-bold text-indigo-600 mb-2">E-commerce Product Importer</h1>
             <p class="text-gray-600">AI Agent built by Crownstack using LangChain and Google Gemini (LLM) to help
@@ -73,6 +73,8 @@
             </div>
         </div>
     </div>
+
+    {{ footer }}
 
     <script>
         const { createApp, ref } = Vue;

@@ -44,13 +44,31 @@ app.include_router(
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+def get_footer():
+    try:
+        with open("app/templates/partials/footer.html", "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return ""
+
+def render_template(path: str, context: dict = {}):
+    with open(path, "r") as f:
+        content = f.read()
+    
+    # Inject root_path
+    content = content.replace("{{ root_path }}", settings.ROOT_PATH)
+    
+    # Inject footer if placeholder exists
+    if "{{ footer }}" in content:
+        content = content.replace("{{ footer }}", get_footer())
+        
+    return HTMLResponse(content=content)
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     auth_cookie = request.cookies.get("auth_session")
     if auth_cookie == "valid_session":
-        with open("app/templates/index.html", "r") as f:
-            content = f.read()
-        return HTMLResponse(content=content.replace("{{ root_path }}", settings.ROOT_PATH))
+        return render_template("app/templates/index.html")
     # Using Jinja2Template response would be better, but since we are using FileResponse for now,
     # we need to switch to TemplateResponse to pass variables, OR we can't pass variables to FileResponse.
     # Wait, the user has been using FileResponse. To pass 'root_path', we MUST use a template engine or client-side JS.
@@ -78,9 +96,8 @@ async def login(password: str = Form(...)):
         return response
     
     # Return login page with error (simplified for now, just reload login)
-    with open("app/templates/login.html", "r") as f:
-        content = f.read()
-    return HTMLResponse(content=content.replace("{{ root_path }}", settings.ROOT_PATH))
+    # Return login page with error (simplified for now, just reload login)
+    return render_template("app/templates/login.html")
 
 if __name__ == "__main__":
     import uvicorn
