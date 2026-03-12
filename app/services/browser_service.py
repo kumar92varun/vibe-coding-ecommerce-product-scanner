@@ -74,9 +74,41 @@ async def scrape_product_page(url: str) -> Tuple[Optional[str], Optional[str]]:
             if "captcha" in title.lower() or "bot" in title.lower() and "robot" not in title.lower(): # Avoid matching "Robot Vacuum"
                  return None, f"Bot detection triggered (Title: {title})"
 
-            # Extract all text, including hidden text
-            body_text = await page.evaluate("document.body.textContent")
-            
+            # Extract all text, including hidden text, while preserving basic structure (newlines and lists)
+            extraction_js = """
+                () => {
+                    function extract(node) {
+                        if (node.nodeType === Node.TEXT_NODE) {
+                            // Replace non-breaking spaces with normal spaces but preserve text
+                            return node.textContent.replace(/\\xA0/g, ' '); 
+                        }
+                        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+                        // Ignore scripts and styles
+                        if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'SVG'].includes(node.tagName)) return '';
+                        
+                        let text = '';
+                        let isList = node.tagName === 'UL' || node.tagName === 'OL';
+                        let isListItem = node.tagName === 'LI';
+                        let isBlock = ['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'TR', 'ARTICLE', 'SECTION'].includes(node.tagName);
+                        
+                        if (isBlock || isList) text += '\\n';
+                        if (isListItem) text += '\\n• ';
+                        
+                        for (let child of node.childNodes) {
+                            text += extract(child);
+                        }
+                        
+                        if (isBlock || isList || isListItem) text += '\\n';
+                        
+                        return text;
+                    }
+                    // Extract and clean up multiple newlines/spaces
+                    let rawText = extract(document.body);
+                    // Standardize whitespace: spaces/tabs collapse, allow newlines
+                    return rawText.replace(/[^\\S\\r\\n]+/g, ' ').replace(/\\n\\s*\\n/g, '\\n\\n').trim();
+                }
+            """
+            body_text = await page.evaluate(extraction_js)
             if not body_text or len(body_text) < 200:
                  return None, "Page loaded but content seems empty or too short (potential block)."
             
