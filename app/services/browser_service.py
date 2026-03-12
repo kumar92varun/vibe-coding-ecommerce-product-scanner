@@ -74,8 +74,8 @@ async def scrape_product_page(url: str) -> Tuple[Optional[str], Optional[str]]:
             if "captcha" in title.lower() or "bot" in title.lower() and "robot" not in title.lower(): # Avoid matching "Robot Vacuum"
                  return None, f"Bot detection triggered (Title: {title})"
 
-            # Extract the visible text
-            body_text = await page.evaluate("document.body.innerText")
+            # Extract all text, including hidden text
+            body_text = await page.evaluate("document.body.textContent")
             
             if not body_text or len(body_text) < 200:
                  return None, "Page loaded but content seems empty or too short (potential block)."
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     # Test the scraper independently
     test_url = "https://www.example.com"
     content, error = asyncio.run(scrape_product_page(test_url))
-    if error:
+    if error or content is None:
         print(f"Failed: {error}")
     else:
         print(content[:500] + "...")
